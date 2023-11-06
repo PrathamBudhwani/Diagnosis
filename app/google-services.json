@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "228541235068",
+    "project_id": "diagnosis-474e5",
+    "storage_bucket": "diagnosis-474e5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:228541235068:android:f939ff5fdbc90abb94aef9",
+        "android_client_info": {
+          "package_name": "com.prathambudhwani.diagnosis"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqBCFRCOlPVjKz30lkIv-UhRyZYG3qCcQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
