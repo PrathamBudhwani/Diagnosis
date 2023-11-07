@@ -1,16 +1,27 @@
 package com.prathambudhwani.diagnosis;
 
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
+import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,17 +40,16 @@ import com.prathambudhwani.diagnosis.recyclermain.checkui.CheckMicrophone;
 import com.prathambudhwani.diagnosis.recyclermain.checkui.CheckSensors;
 import com.prathambudhwani.diagnosis.recyclermain.checkui.CheckSpeaker;
 import com.prathambudhwani.diagnosis.recyclermain.checkui.RootStatus;
-import com.tom_roush.pdfbox.pdmodel.PDDocument;
-import com.tom_roush.pdfbox.pdmodel.PDPage;
-import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
-import com.tom_roush.pdfbox.pdmodel.font.PDType1Font;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private static final int PERMISSION_REQUEST_CODE = 200;
     DatabaseReference testResultsRef = FirebaseDatabase.getInstance().getReference("testResults");
 
     List<TestResult> testResults = new ArrayList<>();
@@ -56,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        // Add items to diagnoseListModels
         diagnoseListModels.add(new DiagnoseListModel("Check Camera", ""));
         diagnoseListModels.add(new DiagnoseListModel("Check Speaker", ""));
         diagnoseListModels.add(new DiagnoseListModel("Check Microphone", ""));
@@ -75,7 +86,12 @@ public class MainActivity extends AppCompatActivity {
         floatingbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                retrieveTestResultsFromFirebase();
+                // Check and request permissions if needed
+                if (checkPermission()) {
+                    retrieveTestResultsFromFirebase();
+                } else {
+                    requestPermission();
+                }
             }
         });
     }
@@ -130,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 try {
-                    generateAndDownloadPDF();
+                    generateAndDownloadPDF(testResults);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -144,45 +160,94 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void generateAndDownloadPDF() throws IOException {
-        PDDocument document = new PDDocument();
-        PDPage page = new PDPage();
-        document.addPage(page);
+    private void generateAndDownloadPDF(List<TestResult> testResults) throws IOException {
+        // Define the page dimensions (pageWidth and pageHeight)
+        int pageWidth = 595;
+        int pageHeight = 842;
 
-        try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+        // Creating an object variable for our PDF document.
+        PdfDocument pdfDocument = new PdfDocument();
 
-            float y = 700;
+        // Create a page info for our PDF.
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, 1).create();
 
-            for (TestResult result : testResults) {
-                contentStream.beginText();
-                contentStream.newLineAtOffset(100, y);
-                contentStream.showText("Test Name: " + result.getTestName());
-                contentStream.newLineAtOffset(0, -20);
-                contentStream.showText("Result: " + result.getResult());
-                contentStream.newLineAtOffset(0, -20);
-                contentStream.showText("Device Name: " + result.getDeviceName());
-                contentStream.newLineAtOffset(0, -20);
-                contentStream.showText("Timestamp: " + result.getTimestamp());
-                contentStream.endText();
+        // Start the page.
+        PdfDocument.Page page = pdfDocument.startPage(pageInfo);
 
-                y -= 80; // Adjust the Y position for the next entry
-            }
+        // Create a canvas to draw on the page.
+        Canvas canvas = page.getCanvas();
+        Paint paint = new Paint();
+
+        // Draw your content, including the Firebase data, on the canvas.
+        // Customize this part as needed based on your specific layout and design.
+        paint.setTextSize(15);
+        int yPosition = 100;
+        for (TestResult testResult : testResults) {
+            String testName = "Test Name: " + testResult.getTestName();
+            String result = "Result: " + testResult.getResult();
+            String deviceName = "Device Name: " + testResult.getDeviceName();
+            String timestamp = "Timestamp: " + new Date(testResult.getTimestamp()).toString();
+
+            canvas.drawText(testName, 50, yPosition, paint);
+            yPosition += 20;
+            canvas.drawText(result, 50, yPosition, paint);
+            yPosition += 20;
+            canvas.drawText(deviceName, 50, yPosition, paint);
+            yPosition += 20;
+            canvas.drawText(timestamp, 50, yPosition, paint);
+            yPosition += 40; // Adjust as needed for spacing between items.
         }
 
-        File pdfFile = new File(getCacheDir(), "test_results.pdf");
-        document.save(pdfFile);
-        document.close();
+        // Finish the page.
+        pdfDocument.finishPage(page);
 
-        Uri pdfUri = FileProvider.getUriForFile(this, "com.prathambudhwani.diagnosis.provider", pdfFile);
-        Intent pdfIntent = new Intent(Intent.ACTION_VIEW);
-        pdfIntent.setDataAndType(pdfUri, "application/pdf");
-        pdfIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        // Specify the file path for the PDF.
+        File file = new File(Environment.getExternalStorageDirectory(), "TestResults.pdf");
 
         try {
-            startActivity(pdfIntent);
-        } catch (ActivityNotFoundException e) {
-            showPdfViewerNotFoundDialog();
+            // Write the PDF to the file.
+            pdfDocument.writeTo(new FileOutputStream(file));
+
+            // Show a toast message for successful PDF generation.
+            Toast.makeText(this, "PDF file generated successfully.", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            // Handle any errors.
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to generate PDF.", Toast.LENGTH_SHORT).show();
+        }
+
+        // Close the PDF document.
+        pdfDocument.close();
+    }
+
+    private boolean checkPermission() {
+        // Checking for permissions.
+        int permission1 = ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE);
+        int permission2 = ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE);
+        return permission1 == PackageManager.PERMISSION_GRANTED && permission2 == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermission() {
+        // Requesting permissions if not provided.
+        ActivityCompat.requestPermissions(this, new String[]{WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+    }
+
+    @SuppressLint("MissingSuperCall")
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0) {
+                // After requesting permissions, show a toast message of permission status.
+                boolean writeStorage = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                boolean readStorage = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+
+                if (writeStorage && readStorage) {
+                    // Permissions granted, proceed with PDF generation.
+                    retrieveTestResultsFromFirebase();
+                } else {
+                    Toast.makeText(this, "Permission Denied. You can grant permissions in the device settings.", Toast.LENGTH_SHORT).show();
+                }
+            }
         }
     }
 

@@ -42,6 +42,9 @@ dependencies {
     implementation("com.google.android.gms:play-services-mlkit-text-recognition-common:19.0.0")
     implementation("com.google.firebase:firebase-database:20.3.0")
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+    implementation("org.apache.pdfbox:fontbox:2.0.27")
+
+
 
 
     testImplementation("junit:junit:4.13.2")
