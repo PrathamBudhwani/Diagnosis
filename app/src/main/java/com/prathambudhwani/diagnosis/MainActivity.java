@@ -1,12 +1,5 @@
 package com.prathambudhwani.diagnosis;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,6 +7,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
@@ -43,9 +42,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     DatabaseReference testResultsRef = FirebaseDatabase.getInstance().getReference("testResults");
 
-    // ArrayList to store test results
     List<TestResult> testResults = new ArrayList<>();
-
     ArrayList<DiagnoseListModel> diagnoseListModels = new ArrayList<>();
     RecyclerView recyclerView;
     FloatingActionButton floatingbtn;
@@ -72,8 +69,6 @@ public class MainActivity extends AppCompatActivity {
             public void onItemCick(DiagnoseListModel diagnoseListModel, int position) {
                 movetoCard(diagnoseListModel, position);
             }
-
-
         });
         recyclerView.setAdapter(adapter);
 
@@ -121,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
     private void retrieveTestResultsFromFirebase() {
         testResultsRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            public void onDataChange(DataSnapshot dataSnapshot) {
                 testResults.clear();
 
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
@@ -142,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+            public void onCancelled(DatabaseError databaseError) {
                 // Handle database retrieval error
                 Toast.makeText(MainActivity.this, "Failed to retrieve test results", Toast.LENGTH_SHORT).show();
             }
@@ -154,8 +149,7 @@ public class MainActivity extends AppCompatActivity {
         PDPage page = new PDPage();
         document.addPage(page);
 
-        try {
-            PDPageContentStream contentStream = new PDPageContentStream(document, page);
+        try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
             contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
 
             float y = 700;
@@ -174,27 +168,21 @@ public class MainActivity extends AppCompatActivity {
 
                 y -= 80; // Adjust the Y position for the next entry
             }
-            contentStream.close();
+        }
 
-//            File pdfFile = new File(getExternalFilesDir(null), "test_results.pdf");
-            File pdfFile = new File(getCacheDir(), "test_results.pdf");
-            document.save(pdfFile);
-            document.close();
+        File pdfFile = new File(getCacheDir(), "test_results.pdf");
+        document.save(pdfFile);
+        document.close();
 
-//            Uri pdfUri = Uri.fromFile(pdfFile);
-            Uri pdfUri = FileProvider.getUriForFile(this, "com.prathambudhwani.diagnosis.provider", pdfFile);
-            Intent pdfIntent = new Intent(Intent.ACTION_VIEW);
-            pdfIntent.setDataAndType(pdfUri, "application/pdf");
-            pdfIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-            pdfIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        Uri pdfUri = FileProvider.getUriForFile(this, "com.prathambudhwani.diagnosis.provider", pdfFile);
+        Intent pdfIntent = new Intent(Intent.ACTION_VIEW);
+        pdfIntent.setDataAndType(pdfUri, "application/pdf");
+        pdfIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-            try {
-                startActivity(pdfIntent);
-            } catch (ActivityNotFoundException e) {
-                showPdfViewerNotFoundDialog();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        try {
+            startActivity(pdfIntent);
+        } catch (ActivityNotFoundException e) {
+            showPdfViewerNotFoundDialog();
         }
     }
 
@@ -204,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage("To view the PDF, please install a PDF viewer app.")
                 .setPositiveButton("Install", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        // You can launch the Play Store to search for a PDF viewer app here
+                        // Launch the Play Store to search for a PDF viewer app
                         Intent marketIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.adobe.reader"));
                         try {
                             startActivity(marketIntent);
