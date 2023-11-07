@@ -311,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Results Saved to Server", Toast.LENGTH_SHORT).show();
                     customProgressDialog.dismiss();
                 }
-            }, 2500);
+            }, 6500);
 
 
         } else {
@@ -331,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Results Saved to Server", Toast.LENGTH_SHORT).show();
                     customProgressDialog.dismiss();
                 }
-            }, 2500);
+            }, 6500);
 
         }
         return super.onOptionsItemSelected(item);
