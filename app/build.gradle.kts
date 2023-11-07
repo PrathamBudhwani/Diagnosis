@@ -43,6 +43,7 @@ dependencies {
     implementation("com.google.firebase:firebase-database:20.3.0")
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
     implementation("org.apache.pdfbox:fontbox:2.0.27")
+    implementation("com.airbnb.android:lottie:6.1.0")
 
 
 
