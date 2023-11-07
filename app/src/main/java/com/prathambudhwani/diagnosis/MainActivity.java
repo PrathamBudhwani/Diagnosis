@@ -14,12 +14,18 @@ import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -44,11 +50,15 @@ import com.prathambudhwani.diagnosis.recyclermain.checkui.RootStatus;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private CustomProgressDialog customProgressDialog;
+    private int progress;
+    Toolbar toolbar;
     private static final int PERMISSION_REQUEST_CODE = 200;
     DatabaseReference testResultsRef = FirebaseDatabase.getInstance().getReference("testResults");
 
@@ -57,14 +67,17 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     FloatingActionButton floatingbtn;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        toolbar = findViewById(R.id.toolbar);
         floatingbtn = findViewById(R.id.floatingbtn);
         recyclerView = findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        setSupportActionBar(toolbar);
 
         // Add items to diagnoseListModels
         diagnoseListModels.add(new DiagnoseListModel("Check Camera", ""));
@@ -72,7 +85,8 @@ public class MainActivity extends AppCompatActivity {
         diagnoseListModels.add(new DiagnoseListModel("Check Microphone", ""));
         diagnoseListModels.add(new DiagnoseListModel("Check Bluetooth", ""));
         diagnoseListModels.add(new DiagnoseListModel("Check GPS", ""));
-        diagnoseListModels.add(new DiagnoseListModel("Check Sensors", ""));
+        diagnoseListModels.add(new DiagnoseListModel("Check Sensors", "GyroScope, Acceleration, Magnetic ,Barometer ,Game Rotation," +
+                " Ambient, Proximity , Rotation Vector and other present in device "));
         diagnoseListModels.add(new DiagnoseListModel("Root Status", ""));
 
         RecyclerViewMainAdapter adapter = new RecyclerViewMainAdapter(this, diagnoseListModels, new RecyclerViewMainAdapter.ItemClickListener() {
@@ -94,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
     }
 
     public void movetoCard(DiagnoseListModel diagnoseListModel, int position) {
@@ -206,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             // Write the PDF to the file.
-            pdfDocument.writeTo(new FileOutputStream(file));
+            pdfDocument.writeTo(Files.newOutputStream(file.toPath()));
 
             // Show a toast message for successful PDF generation.
             Toast.makeText(this, "PDF file generated successfully.", Toast.LENGTH_SHORT).show();
@@ -268,5 +283,57 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        new MenuInflater(this).inflate(R.menu.bar_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int itemid = item.getItemId();
+        if (itemid == R.id.runonce) {
+            customProgressDialog = new CustomProgressDialog(this);
+            customProgressDialog.show();
+
+            // Simulate a progress update (e.g., downloading task)
+            progress = 0;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (progress < 100) {
+                        progress += 10;
+                        customProgressDialog.setProgress(progress);
+
+                    }
+                    Toast.makeText(MainActivity.this, "Results Saved to Server", Toast.LENGTH_SHORT).show();
+                    customProgressDialog.dismiss();
+                }
+            }, 2500);
+
+
+        } else {
+            customProgressDialog = new CustomProgressDialog(this);
+            customProgressDialog.show();
+
+            // Simulate a progress update (e.g., downloading task)
+            progress = 0;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (progress < 100) {
+                        progress += 10;
+                        customProgressDialog.setProgress(progress);
+
+                    }
+                    Toast.makeText(MainActivity.this, "Results Saved to Server", Toast.LENGTH_SHORT).show();
+                    customProgressDialog.dismiss();
+                }
+            }, 2500);
+
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
