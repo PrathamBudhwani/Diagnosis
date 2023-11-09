@@ -23,7 +23,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+
     </LinearLayout>
+
+    <SurfaceView
+        android:id="@+id/cameraPreview"
+        android:layout_width="match_parent"
+        android:layout_height="650dp"
+        android:visibility="gone"/>
 
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

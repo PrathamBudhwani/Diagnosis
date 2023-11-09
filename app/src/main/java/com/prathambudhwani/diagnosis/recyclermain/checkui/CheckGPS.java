@@ -57,7 +57,7 @@ public class CheckGPS extends AppCompatActivity {
         });
     }
 
-    private boolean checkGpsFunctionality() {
+    public boolean checkGpsFunctionality() {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         boolean isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 

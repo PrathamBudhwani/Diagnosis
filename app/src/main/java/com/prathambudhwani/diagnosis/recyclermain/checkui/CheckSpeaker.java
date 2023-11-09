@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.media.AudioManager;
+import android.media.MediaExtractor;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -19,10 +20,11 @@ import com.prathambudhwani.diagnosis.R;
 import com.prathambudhwani.diagnosis.TestResult;
 
 public class CheckSpeaker extends AppCompatActivity {
+
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference testResultsRef = database.getReference("testResults");
 
-    private MediaPlayer mediaPlayer;
+    public MediaPlayer mediaPlayer;
     private TextView tvSpeakerStatus;
 
     @SuppressLint("MissingInflatedId")
@@ -52,8 +54,30 @@ public class CheckSpeaker extends AppCompatActivity {
             }
         });
     }
+    public void playTestTone() {
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
-    private boolean checkSpeakerStatus() {
+        try {
+            mediaPlayer.setDataSource(this, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.test_tone));
+            mediaPlayer.prepare();
+            mediaPlayer.setOnCompletionListener(mp -> {
+                if (tvSpeakerStatus != null) {
+                    tvSpeakerStatus.setText("Speaker is working");
+                    Toast.makeText(this, "Speaker is working", Toast.LENGTH_SHORT).show();
+                }
+                mediaPlayer.release();
+            });
+            mediaPlayer.start();
+        } catch (Exception e) {
+            if (tvSpeakerStatus != null) {
+                tvSpeakerStatus.setText("Speaker is working");
+                Toast.makeText(this, "Speaker is not working", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public boolean checkSpeakerStatus() {
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 

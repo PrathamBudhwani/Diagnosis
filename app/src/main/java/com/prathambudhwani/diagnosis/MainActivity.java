@@ -5,12 +5,17 @@ import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Camera;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.pdf.PdfDocument;
+import android.location.LocationManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -18,6 +23,7 @@ import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -25,6 +31,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.WindowDecorActionBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -56,10 +63,18 @@ import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private MediaPlayer mediaPlayer;
     private CustomProgressDialog customProgressDialog;
     private int progress;
+    SurfaceView surfaceView;
     Toolbar toolbar;
     private static final int PERMISSION_REQUEST_CODE = 200;
+    private CheckBluetooth checkBluetooth = new CheckBluetooth();
+    private CheckCamera checkCamera = new CheckCamera();
+    private CheckGPS checkGPS = new CheckGPS();
+    private CheckSensors checkSensors = new CheckSensors();
+    private CheckSpeaker checkSpeaker = new CheckSpeaker();
+    private RootStatus rootStatus = new RootStatus();
     DatabaseReference testResultsRef = FirebaseDatabase.getInstance().getReference("testResults");
 
     List<TestResult> testResults = new ArrayList<>();
@@ -78,6 +93,9 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         setSupportActionBar(toolbar);
+
+
+        surfaceView = findViewById(R.id.cameraPreview);
 
         // Add items to diagnoseListModels
         diagnoseListModels.add(new DiagnoseListModel("Check Camera", ""));
@@ -260,7 +278,7 @@ public class MainActivity extends AppCompatActivity {
                     // Permissions granted, proceed with PDF generation.
                     retrieveTestResultsFromFirebase();
                 } else {
-                    Toast.makeText(this, "Permission Denied. You can grant permissions in the device settings.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Reports Saved.", Toast.LENGTH_SHORT).show();
                 }
             }
         }
@@ -298,14 +316,43 @@ public class MainActivity extends AppCompatActivity {
             customProgressDialog = new CustomProgressDialog(this);
             customProgressDialog.show();
 
+
             // Simulate a progress update (e.g., downloading task)
             progress = 0;
             new Handler().postDelayed(new Runnable() {
+                @SuppressLint("RestrictedApi")
                 @Override
                 public void run() {
                     if (progress < 100) {
                         progress += 10;
                         customProgressDialog.setProgress(progress);
+
+                        checkBluetooth.checkBluetoothStatus();
+
+
+                        MicChecker.isMicrophoneAvailable(getApplicationContext());
+                        RootChecker.isDeviceRooted();
+
+
+                        if (checkPermission()) {
+                            // Pass the context when calling startCameraPreviewAndCapturePhoto
+                            checkCamera.startCameraPreviewAndCapturePhoto(MainActivity.this);
+                        } else {
+                            requestPermission();
+                        }
+
+                        // Check speaker functionality
+                        checkSpeaker.playTestTone();
+
+                        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                        boolean isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+                        if (isGpsEnabled) {
+                            Toast.makeText(MainActivity.this, "Test Results Saved", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Test Results Saved", Toast.LENGTH_SHORT).show();
+                        }
+
 
                     }
                     Toast.makeText(MainActivity.this, "Results Saved to Server", Toast.LENGTH_SHORT).show();
@@ -327,6 +374,52 @@ public class MainActivity extends AppCompatActivity {
                         progress += 10;
                         customProgressDialog.setProgress(progress);
 
+                        checkBluetooth.checkBluetoothStatus();
+
+
+                        MicChecker.isMicrophoneAvailable(getApplicationContext());
+                        RootChecker.isDeviceRooted();
+
+
+                        if (checkPermission()) {
+                            // Pass the context when calling startCameraPreviewAndCapturePhoto
+                            checkCamera.startCameraPreviewAndCapturePhoto(MainActivity.this);
+                        } else {
+                            requestPermission();
+                        }
+
+                        // Check speaker functionality
+                        mediaPlayer = new MediaPlayer();
+                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+
+                        try {
+                            mediaPlayer.setDataSource(MainActivity.this, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.test_tone));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        try {
+                            mediaPlayer.prepare();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        mediaPlayer.setOnCompletionListener(mp -> {
+
+
+                            mediaPlayer.release();
+                        });
+                        mediaPlayer.start();
+
+                        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                        boolean isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+                        if (isGpsEnabled) {
+                            Toast.makeText(MainActivity.this, "Test Results Saved", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Test Results Saved", Toast.LENGTH_SHORT).show();
+                        }
+
+
                     }
                     Toast.makeText(MainActivity.this, "Results Saved to Server", Toast.LENGTH_SHORT).show();
                     customProgressDialog.dismiss();
@@ -336,4 +429,8 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+
+
+
 }

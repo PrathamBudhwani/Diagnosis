@@ -3,6 +3,7 @@ package com.prathambudhwani.diagnosis.recyclermain.checkui;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 
@@ -86,7 +87,7 @@ public class CheckCamera extends AppCompatActivity {
 
     }
 
-    private boolean checkCameraPermission() {
+    public boolean checkCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST);
             return false;
@@ -94,7 +95,7 @@ public class CheckCamera extends AppCompatActivity {
         return true;
     }
 
-    private void initializeCamera() {
+    public void initializeCamera() {
         try {
             camera = Camera.open();
             camera.setDisplayOrientation(90);
@@ -129,6 +130,28 @@ public class CheckCamera extends AppCompatActivity {
             camera.stopPreview();
             camera.release();
             camera = null;
+        }
+    }
+
+    public void startCameraPreviewAndCapturePhoto(Context context) {
+
+        try {
+            // Use the context parameter instead of trying to access the ContextWrapper
+            String packageName = context.getPackageName();
+
+            // Rest of your code
+        } catch (Exception e) {
+            // Handle exceptions
+            e.printStackTrace();
+        }
+        if (camera != null) {
+            // Start camera preview
+            initializeCamera();
+
+            // Capture a photo (implement this part)
+            // You can use camera.takePicture() to capture a photo
+        } else {
+            Toast.makeText(this, "Camera not initialized", Toast.LENGTH_SHORT).show();
         }
     }
 }

@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -68,7 +69,13 @@ public class CheckBluetooth extends AppCompatActivity {
         });
     }
 
-    private boolean checkBluetoothStatus() {
+    public boolean checkBluetoothStatus() {
+        if (btresult == null) {
+            // Add a log or debug message to help identify the issue.
+            Log.e("CheckBluetooth", "btresult TextView is null.");
+            return false;
+        }
+
         if (myBluetoothAdapter == null) {
             btresult.setText("Bluetooth not available");
             Toast.makeText(this, "Bluetooth not available", Toast.LENGTH_SHORT).show();
