@@ -3,6 +3,8 @@ package com.prathambudhwani.diagnosis;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
+import static com.prathambudhwani.diagnosis.recyclermain.checkui.MLkitFaceCheck.REQUEST_IMAGE_CAPTURE;
+
 import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -20,6 +22,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -52,6 +55,7 @@ import com.prathambudhwani.diagnosis.recyclermain.checkui.CheckGPS;
 import com.prathambudhwani.diagnosis.recyclermain.checkui.CheckMicrophone;
 import com.prathambudhwani.diagnosis.recyclermain.checkui.CheckSensors;
 import com.prathambudhwani.diagnosis.recyclermain.checkui.CheckSpeaker;
+import com.prathambudhwani.diagnosis.recyclermain.checkui.MLkitFaceCheck;
 import com.prathambudhwani.diagnosis.recyclermain.checkui.RootStatus;
 
 import java.io.File;
@@ -130,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void movetoCard(DiagnoseListModel diagnoseListModel, int position) {
-        Intent iCamera = new Intent(getApplicationContext(), CheckCamera.class);
+        Intent iCamera = new Intent(getApplicationContext(), MLkitFaceCheck.class);
         Intent iSpeaker = new Intent(getApplicationContext(), CheckSpeaker.class);
         Intent iMicrophone = new Intent(getApplicationContext(), CheckMicrophone.class);
         Intent iBluetooth = new Intent(getApplicationContext(), CheckBluetooth.class);
@@ -332,6 +336,13 @@ public class MainActivity extends AppCompatActivity {
 
                         MicChecker.isMicrophoneAvailable(getApplicationContext());
                         RootChecker.isDeviceRooted();
+
+                        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        if (intent.resolveActivity(getPackageManager()) != null) {
+                            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+                        } else {
+                            Toast.makeText(MainActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                        }
 
 
                         if (checkPermission()) {

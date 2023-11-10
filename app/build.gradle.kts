@@ -44,6 +44,10 @@ dependencies {
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
     implementation("org.apache.pdfbox:fontbox:2.0.27")
     implementation("com.airbnb.android:lottie:6.1.0")
+    implementation("com.google.firebase:firebase-ml-vision:24.1.0")
+    configurations.implementation{
+        exclude("com.google.android.gms","play-services-vision-common")
+    }
 
 
 
