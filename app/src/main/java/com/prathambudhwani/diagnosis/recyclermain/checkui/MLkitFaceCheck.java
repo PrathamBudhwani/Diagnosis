@@ -39,7 +39,7 @@ public class MLkitFaceCheck extends AppCompatActivity {
     public static final int REQUEST_IMAGE_CAPTURE = 124;
     private FirebaseVisionImage image;
     private FirebaseVisionFaceDetector detector;
-    private static final int CAMERA_PERMISSION_REQUEST_CODE = 101;
+    public static final int CAMERA_PERMISSION_REQUEST_CODE = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

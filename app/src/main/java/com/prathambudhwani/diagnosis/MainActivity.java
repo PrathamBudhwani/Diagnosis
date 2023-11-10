@@ -3,8 +3,10 @@ package com.prathambudhwani.diagnosis;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
+import static com.prathambudhwani.diagnosis.recyclermain.checkui.MLkitFaceCheck.CAMERA_PERMISSION_REQUEST_CODE;
 import static com.prathambudhwani.diagnosis.recyclermain.checkui.MLkitFaceCheck.REQUEST_IMAGE_CAPTURE;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -336,15 +338,22 @@ public class MainActivity extends AppCompatActivity {
 
                         MicChecker.isMicrophoneAvailable(getApplicationContext());
                         RootChecker.isDeviceRooted();
-
-                        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                        if (intent.resolveActivity(getPackageManager()) != null) {
-                            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
-                            Toast.makeText(MainActivity.this, "Results Saved to Server", Toast.LENGTH_SHORT).show();
-
+                        if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                            // Request the CAMERA permission.
+                            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
                         } else {
-                            Toast.makeText(MainActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                            // CAMERA permission is already granted; proceed with camera capture.
+                            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                            if (intent.resolveActivity(getPackageManager()) != null) {
+                                startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+                                Toast.makeText(MainActivity.this, "Results Saved", Toast.LENGTH_SHORT).show();
+                            } else {
+                                // If the image is not captured, set a toast to display an error message.
+                                Toast.makeText(MainActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                            }
                         }
+
+
 
                         // Check speaker functionality
                         checkSpeaker.playTestTone();
@@ -386,14 +395,19 @@ public class MainActivity extends AppCompatActivity {
                         RootChecker.isDeviceRooted();
 
 
-                        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                        if (intent.resolveActivity(getPackageManager()) != null) {
-                            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
-                            Toast.makeText(MainActivity.this, "Results Saved to Server", Toast.LENGTH_SHORT).show();
-
+                        if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                            // Request the CAMERA permission.
+                            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
                         } else {
-                            // If the image is not captured, set a toast to display an error message.
-                            Toast.makeText(MainActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                            // CAMERA permission is already granted; proceed with camera capture.
+                            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                            if (intent.resolveActivity(getPackageManager()) != null) {
+                                startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+                                Toast.makeText(MainActivity.this, "Results Saved", Toast.LENGTH_SHORT).show();
+                            } else {
+                                // If the image is not captured, set a toast to display an error message.
+                                Toast.makeText(MainActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                            }
                         }
 
                         // Check speaker functionality
