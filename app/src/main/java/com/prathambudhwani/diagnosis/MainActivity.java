@@ -340,16 +340,10 @@ public class MainActivity extends AppCompatActivity {
                         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                         if (intent.resolveActivity(getPackageManager()) != null) {
                             startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+                            Toast.makeText(MainActivity.this, "Results Saved to Server", Toast.LENGTH_SHORT).show();
+
                         } else {
                             Toast.makeText(MainActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
-                        }
-
-
-                        if (checkPermission()) {
-                            // Pass the context when calling startCameraPreviewAndCapturePhoto
-                            checkCamera.startCameraPreviewAndCapturePhoto(MainActivity.this);
-                        } else {
-                            requestPermission();
                         }
 
                         // Check speaker functionality
@@ -392,16 +386,25 @@ public class MainActivity extends AppCompatActivity {
                         RootChecker.isDeviceRooted();
 
 
+                        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        if (intent.resolveActivity(getPackageManager()) != null) {
+                            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+                            Toast.makeText(MainActivity.this, "Results Saved to Server", Toast.LENGTH_SHORT).show();
+
+                        } else {
+                            // If the image is not captured, set a toast to display an error message.
+                            Toast.makeText(MainActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                        }
+
+                        // Check speaker functionality
+                        mediaPlayer = new MediaPlayer();
+                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                         if (checkPermission()) {
                             // Pass the context when calling startCameraPreviewAndCapturePhoto
                             checkCamera.startCameraPreviewAndCapturePhoto(MainActivity.this);
                         } else {
                             requestPermission();
                         }
-
-                        // Check speaker functionality
-                        mediaPlayer = new MediaPlayer();
-                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
 
                         try {
