@@ -84,6 +84,7 @@ public class MLkitFaceCheck extends AppCompatActivity {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (intent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+
         } else {
             // If the image is not captured, set a toast to display an error message.
             Toast.makeText(MLkitFaceCheck.this, "Something went wrong", Toast.LENGTH_SHORT).show();
@@ -98,6 +99,7 @@ public class MLkitFaceCheck extends AppCompatActivity {
             if (extras != null) {
                 Bitmap bitmap = (Bitmap) extras.get("data");
                 detectFace(bitmap);
+                Toast.makeText(this, "Passed", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -133,12 +135,17 @@ public class MLkitFaceCheck extends AppCompatActivity {
                         if (firebaseVisionFaces.size() == 0) {
                             Toast.makeText(MLkitFaceCheck.this, "NO FACE DETECT", Toast.LENGTH_SHORT).show();
                         } else {
+                            // Test passed: Show face information dialog
                             Bundle bundle = new Bundle();
                             bundle.putString(LCOFaceDetection.RESULT_TEXT, resultText);
                             DialogFragment resultDialog = new ResultDialog();
                             resultDialog.setArguments(bundle);
                             resultDialog.setCancelable(true);
                             resultDialog.show(getSupportFragmentManager(), LCOFaceDetection.RESULT_DIALOG);
+
+                            // Alternatively, you can perform some other action here for the "passed" case.
+                            // For example, start a new activity, log the result, etc.
+                            // startActivity(new Intent(MLkitFaceCheck.this, PassedActivity.class));
                         }
                     }
                 })

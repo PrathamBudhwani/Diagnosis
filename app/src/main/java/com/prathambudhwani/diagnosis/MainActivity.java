@@ -25,6 +25,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -198,6 +199,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    private void handlePdfGenerationError(IOException e) {
+        e.printStackTrace();
+        Log.e("PDF Generation", "Failed to generate PDF: " + e.getMessage());
+        Toast.makeText(this, "Failed to generate PDF. Check logs for details.", Toast.LENGTH_SHORT).show();
+    }
 
     private void generateAndDownloadPDF(List<TestResult> testResults) throws IOException {
         // Define the page dimensions (pageWidth and pageHeight)
@@ -249,6 +255,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Show a toast message for successful PDF generation.
             Toast.makeText(this, "PDF file generated successfully.", Toast.LENGTH_SHORT).show();
+            openPdfViewer(file);
         } catch (IOException e) {
             // Handle any errors.
             e.printStackTrace();
@@ -257,6 +264,19 @@ public class MainActivity extends AppCompatActivity {
 
         // Close the PDF document.
         pdfDocument.close();
+    }
+
+    private void openPdfViewer(File file) {
+        // Use an Intent to open a PDF viewer app
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(Uri.fromFile(file), "application/pdf");
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            // If no PDF viewer app is installed, show a dialog to prompt installation
+            showPdfViewerNotFoundDialog();
+        }
     }
 
     private boolean checkPermission() {
@@ -338,6 +358,8 @@ public class MainActivity extends AppCompatActivity {
 
                         MicChecker.isMicrophoneAvailable(getApplicationContext());
                         RootChecker.isDeviceRooted();
+
+
                         if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                             // Request the CAMERA permission.
                             ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
